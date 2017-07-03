@@ -192,8 +192,8 @@ func getAllApp(stub shim.ChaincodeStubInterface) ([]byte, error) {
 			recBytes,_:=getAppById(stub, value)
 		
 		var record map[string]string
-		record["applicationNumber"]=value
 		json.Unmarshal(recBytes, &record)
+		record["applicationNumber"]=value
 		allApp = append(allApp, record)
 	}
 	outputBytes, _ := json.Marshal(allApp)
