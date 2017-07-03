@@ -180,27 +180,10 @@ func getAppByEmailId(stub shim.ChaincodeStubInterface, args string) ([]byte, err
 }
 //Get all the Application based on the status 
 //to do
-func getAllApp(stub shim.ChaincodeStubInterface, args string) ([]byte, error) {
-	logger.Info("getAppById called with AppId: " + args )
+func getAllApp(stub shim.ChaincodeStubInterface) ([]byte, error) {
+	logger.Info("getAllApp called" )
 	
-	id,err:=stub.GetState(args)
-	if err != nil {
-		jsonResp:= "{\"Error\":\"Failed to get state for id\"}"
-		return nil, errors.New(jsonResp)
-	}
-	if (string)(id) == "" {
-		jsonResp:= "{\"Error\":\"Failed to get state for this emaili" +args+"\"}"
-		return nil, errors.New(jsonResp)
-	}
-	fmt.Println("The email id is"+(string)(id))
-	
-	var outputRecord map[string]string
-	appid := (string)(id)//AppId
-	recBytes, _ := stub.GetState(appid)
-	json.Unmarshal(recBytes, &outputRecord)
-	outputBytes, _ := json.Marshal(outputRecord)
-	logger.Info("Returning records from getAppId " + string(outputBytes))
-	return outputBytes, nil
+	return nil, nil
 }
 
 //Main method
