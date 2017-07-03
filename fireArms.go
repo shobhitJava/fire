@@ -182,8 +182,23 @@ func getAppByEmailId(stub shim.ChaincodeStubInterface, args string) ([]byte, err
 //to do
 func getAllApp(stub shim.ChaincodeStubInterface) ([]byte, error) {
 	logger.Info("getAllApp called" )
+	var recordList []string
+	var allApp []map[string] string
+	recBytes, _ := stub.GetState(ALL_ELEMENENTS)
+	json.Unmarshal(recBytes, &recordList)
 	
-	return nil, nil
+	for _,value  := range recordList {
+			logger.Info("inside getallApp range func")
+			recBytes,_:=getAppById(stub, value)
+		
+		var record map[string]string
+		json.Unmarshal(recBytes, &record)
+		allApp = append(allApp, record)
+	}
+	outputBytes, _ := json.Marshal(allApp)
+	
+	
+	return outputBytes, nil
 }
 
 //Main method
