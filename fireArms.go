@@ -1,7 +1,6 @@
 package main
 
 import (
-	
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-
 )
 
 var logger = shim.NewLogger("FireArms")
@@ -17,16 +15,9 @@ var logger = shim.NewLogger("FireArms")
 //ALL_ELEMENENTS Key to refer the list of application
 const ALL_ELEMENENTS = "ALL_APP"
 
-
-
-
 //FireArms Chaincode default interface
 type FireArms struct {
 }
-
-
-
-
 
 //Append a new fireArms appid to the master list
 func updateMasterRecords(stub shim.ChaincodeStubInterface, appId string) error {
@@ -44,8 +35,6 @@ func updateMasterRecords(stub shim.ChaincodeStubInterface, appId string) error {
 	return nil
 }
 
-
-
 // Creating a new fireArm Application
 func createApplication(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	logger.Info("createfireArm application called")
@@ -53,33 +42,31 @@ func createApplication(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 	var data map[string]string
 	valAsbytes, err := stub.GetState("id")
 	if err != nil {
-		jsonResp:= "{\"Error\":\"Failed to get state for id\"}"
+		jsonResp := "{\"Error\":\"Failed to get state for id\"}"
 		return nil, errors.New(jsonResp)
 	}
 	fmt.Println((string)(valAsbytes))
-	id=(string)(valAsbytes)
-	
-	fmt.Println("new id is"+id)
-	uniqueId,_:=strconv.Atoi(id)
-	appId:="AppId"+id
-	newid:=uniqueId+1
-	stub.PutState("id",[]byte(strconv.Itoa(newid)))
+	id = (string)(valAsbytes)
+
+	fmt.Println("new id is" + id)
+	uniqueId, _ := strconv.Atoi(id)
+	appId := "AppId" + id
+	newid := uniqueId + 1
+	stub.PutState("id", []byte(strconv.Itoa(newid)))
 	payload := args[0]
 	json.Unmarshal([]byte(payload), &data)
-	email:=data["appemail"]	
-	fmt.Println("emiail is: "+email)
-	stub.PutState(email,[]byte(appId))	
+	email := data["appemail"]
+	fmt.Println("emiail is: " + email)
+	stub.PutState(email, []byte(appId))
 	fmt.Println("new Payload is " + payload)
-	
-		stub.PutState(appId, []byte(payload))
 
-		updateMasterRecords(stub, appId)
-		logger.Info("Created the FireArms")
-	
+	stub.PutState(appId, []byte(payload))
+
+	updateMasterRecords(stub, appId)
+	logger.Info("Created the FireArms")
+
 	return nil, nil
 }
-
-
 
 //Validate a input string as number or not
 func validateNumber(str string) float64 {
@@ -100,20 +87,18 @@ func updateRecord(existingRecord map[string]string, fieldsToUpdate map[string]st
 	return string(outputMapBytes), nil
 }
 
-
 func probe() []byte {
 	ts := time.Now().Format(time.UnixDate)
 	output := "{\"status\":\"Success\",\"ts\" : \"" + ts + "\" }"
 	return []byte(output)
 }
 
-
 // Init initializes the smart contracts
 func (t *FireArms) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	logger.Info("Init called")
 	//Place an empty arry
 	stub.PutState(ALL_ELEMENENTS, []byte("[]"))
-	stub.PutState("id",[]byte("1"))
+	stub.PutState("id", []byte("1"))
 	return nil, nil
 }
 
@@ -123,7 +108,9 @@ func (t *FireArms) Invoke(stub shim.ChaincodeStubInterface, function string, arg
 
 	if function == "createApplication" {
 		createApplication(stub, args)
-	} 
+	} else if function == "updateApplication" {
+		updateApplication(stub, args)
+	}
 
 	return nil, nil
 }
@@ -133,21 +120,25 @@ func (t *FireArms) Query(stub shim.ChaincodeStubInterface, function string, args
 	logger.Info("Query called")
 	if function == "getAppById" {
 		return getAppById(stub, args[0])
-	}else if function == "getAppByEmailId" {
+	} else if function == "getAppByEmailId" {
 		return getAppByEmailId(stub, args[0])
-	}else if function == "getAllApp" {
+	} else if function == "getAllApp" {
 		return getAllApp(stub)
-	}   
-	
+	} else if function == "getAppByStatus" {
+		return getAllAppByStatus(stub, args)
+	} else if function == "getAppForRefree" {
+		return getAllAppByStatus(stub, args)
+	}
+
 	return nil, nil
 }
 
 //Get a single Application
 func getAppById(stub shim.ChaincodeStubInterface, args string) ([]byte, error) {
-	logger.Info("getAppById called with AppId: " + args )
+	logger.Info("getAppById called with AppId: " + args)
 
 	var outputRecord map[string]string
-	appid := args//AppId
+	appid := args //AppId
 	recBytes, _ := stub.GetState(appid)
 	json.Unmarshal(recBytes, &outputRecord)
 	outputBytes, _ := json.Marshal(outputRecord)
@@ -157,55 +148,133 @@ func getAppById(stub shim.ChaincodeStubInterface, args string) ([]byte, error) {
 
 //Get a single Application on the basis of email id
 func getAppByEmailId(stub shim.ChaincodeStubInterface, args string) ([]byte, error) {
-	logger.Info("getAppById called with AppId: " + args )
-	
-	id,err:=stub.GetState(args)
+	logger.Info("getAppById called with AppId: " + args)
+
+	id, err := stub.GetState(args)
 	if err != nil {
-		jsonResp:= "{\"Error\":\"Failed to get state for id\"}"
+		jsonResp := "{\"Error\":\"Failed to get state for id\"}"
 		return nil, errors.New(jsonResp)
 	}
 	if (string)(id) == "" {
-		jsonResp:= "{\"Error\":\"Failed to get state for this emaili" +args+"\"}"
+		jsonResp := "{\"Error\":\"Failed to get state for this email " + args + "\"}"
 		return nil, errors.New(jsonResp)
 	}
-	fmt.Println("The email id is"+(string)(id))
-	
+	fmt.Println("The email id is" + (string)(id))
+
 	var outputRecord map[string]string
-	appid := (string)(id)//AppId
+	appid := (string)(id) //AppId
 	recBytes, _ := stub.GetState(appid)
 	json.Unmarshal(recBytes, &outputRecord)
+	outputRecord["applicationNumber"] = appid
 	outputBytes, _ := json.Marshal(outputRecord)
 	logger.Info("Returning records from getAppId " + string(outputBytes))
 	return outputBytes, nil
 }
-//Get all the Application based on the status 
-//to do
-func getAllApp(stub shim.ChaincodeStubInterface) ([]byte, error) {
-	logger.Info("getAllApp called" )
+
+//Get all the Application based on the status
+func getAllAppByStatus(stub shim.ChaincodeStubInterface, status []string) ([]byte, error) {
+	logger.Info("getAllAppByStatus called")
 	var recordList []string
-	var allApp []map[string] string
+	var allApp []map[string]string
 	recBytes, _ := stub.GetState(ALL_ELEMENENTS)
 	json.Unmarshal(recBytes, &recordList)
-	
-	for _,value  := range recordList {
-			logger.Info("inside getallApp range func")
-			recBytes,_:=getAppById(stub, value)
-		
+
+	for _, value := range recordList {
+		logger.Info("inside getAllAppByStatus range func")
+		recBytes, _ := getAppById(stub, value)
 		var record map[string]string
 		json.Unmarshal(recBytes, &record)
-		record["applicationNumber"]=value
+		for _, data := range status {
+			if record["status"] == data {
+				record["applicationNumber"] = value
+				allApp = append(allApp, record)
+			}
+		}
+	}
+	outputBytes, _ := json.Marshal(allApp)
+	return outputBytes, nil
+}
+
+//get the application for a refree
+func getAppForRefree(stub shim.ChaincodeStubInterface, refreeEmail string) ([]byte, error) {
+	logger.Info("getAppForRefree called")
+	var recordList []string
+	var allApp []map[string]string
+	recBytes, _ := stub.GetState(ALL_ELEMENENTS)
+	json.Unmarshal(recBytes, &recordList)
+
+	for _, value := range recordList {
+		logger.Info("inside getAppForRefree range func")
+		recBytes, _ := getAppById(stub, value)
+		var record map[string]string
+		json.Unmarshal(recBytes, &record)
+
+		if record["referee1email"] == refreeEmail {
+			record["applicationNumber"] = value
+			allApp = append(allApp, record)
+		} else if record["referee2email"] == refreeEmail {
+			record["applicationNumber"] = value
+			allApp = append(allApp, record)
+		}
+	}
+	outputBytes, _ := json.Marshal(allApp)
+	return outputBytes, nil
+}
+
+//get all applications
+func getAllApp(stub shim.ChaincodeStubInterface) ([]byte, error) {
+	logger.Info("getAllApp called")
+	var recordList []string
+	var allApp []map[string]string
+	recBytes, _ := stub.GetState(ALL_ELEMENENTS)
+	json.Unmarshal(recBytes, &recordList)
+
+	for _, value := range recordList {
+		logger.Info("inside getallApp range func")
+		recBytes, _ := getAppById(stub, value)
+
+		var record map[string]string
+		json.Unmarshal(recBytes, &record)
+		record["applicationNumber"] = value
 		allApp = append(allApp, record)
 	}
 	outputBytes, _ := json.Marshal(allApp)
-	
-	
+
 	return outputBytes, nil
+}
+
+//update application
+func updateApplication(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var existingRecMap map[string]string
+	var updatedFields map[string]string
+	var appId string
+	logger.Info("updateapplication called ")
+
+	payload := args[0]
+	logger.Info("updateapplication payload  " + payload)
+	json.Unmarshal([]byte(payload), &updatedFields)
+
+	for key, value := range updatedFields {
+		if key == "applicationNumber" {
+			appId = value
+			recBytes, _ := stub.GetState(value)
+			if recBytes == nil {
+				jsonResp := "{\"Error\":\"No records available for this id " + key + "\"}"
+				return nil, errors.New(jsonResp)
+			}
+			json.Unmarshal(recBytes, &existingRecMap)
+		}
+	}
+
+	updatedReord, _ := updateRecord(existingRecMap, updatedFields)
+	stub.PutState(appId, []byte(updatedReord))
+	return nil, nil
 }
 
 //Main method
 func main() {
 	logger.SetLevel(shim.LogInfo)
-	
+
 	err := shim.Start(new(FireArms))
 	if err != nil {
 		fmt.Printf("Error starting FireArms: %s", err)
