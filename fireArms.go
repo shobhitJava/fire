@@ -127,7 +127,7 @@ func (t *FireArms) Query(stub shim.ChaincodeStubInterface, function string, args
 	} else if function == "getAllAppByStatus" {
 		return getAllAppByStatus(stub, args)
 	} else if function == "getAppForRefree" {
-		return getAppForRefree(stub, args)
+		return getAppForRefree(stub, args[0])
 	}
 
 	return nil, nil
