@@ -124,10 +124,10 @@ func (t *FireArms) Query(stub shim.ChaincodeStubInterface, function string, args
 		return getAppByEmailId(stub, args[0])
 	} else if function == "getAllApp" {
 		return getAllApp(stub)
-	} else if function == "getAppByStatus" {
+	} else if function == "getAllAppByStatus" {
 		return getAllAppByStatus(stub, args)
 	} else if function == "getAppForRefree" {
-		return getAllAppByStatus(stub, args)
+		return getAppForRefree(stub, args)
 	}
 
 	return nil, nil
