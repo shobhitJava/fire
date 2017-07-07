@@ -264,7 +264,7 @@ func updateApplication(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 			}
 			json.Unmarshal(recBytes, &existingRecMap)
 			if updatedFields["status"] == "REFEREE CHECK COMPLETE" {
-				if updatedFields["refereechk1"] != "" {
+				if updatedFields["refereechk1"] != "" || updatedFields["referee2chk1"] != ""  {
 					updatedFields["status"] = existingRecMap["status"]
 				}
 			}
